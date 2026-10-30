@@ -12,21 +12,34 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.22.0'
           channel: 'stable'
+          
       - name: Scaffold
         run: flutter create --org com.example --project-name app_pdf _scaffold
+        
       - name: Move android
         run: cp -r _scaffold/android ./android
-      - name: Fix minSdkVersion
+        
+      - name: Patch Android Configuration (Fix Gradle Errors)
         run: |
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
-          sed -i 's/minSdkVersion .*/minSdkVersion 24/' android/app/build.gradle
-          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/' android/app/build.gradle
+          # تحديث نسخ Gradle و Kotlin
+          sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.1.0/' android/build.gradle
+          sed -i 's/distributionUrl=.*/distributionUrl=https\\:\/\/services.gradle.org\/distributions\/gradle-8.3-all.zip/' android/gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
+          
+          # إصلاح minSdk وإضافة namespace
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/g' android/app/build.gradle
+          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/g' android/app/build.gradle
+          sed -i 's/namespace .*//g' android/app/build.gradle
+          sed -i 's/android {/android {\n    namespace "com.example.app_pdf"/g' android/app/build.gradle
+          
       - run: flutter pub get
-      - name: Build Release APK
-        run: flutter build apk --release
+      
+      - name: Build Debug APK
+        run: flutter build apk --debug
+        
       - uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
