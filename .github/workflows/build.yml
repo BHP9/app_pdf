@@ -12,17 +12,17 @@ jobs:
           java-version: '17'
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.24.0'
           channel: 'stable'
       - name: Scaffold
         run: flutter create --org com.example --project-name app_pdf _scaffold
       - name: Move android
         run: cp -r _scaffold/android ./android
-      - name: Fix Gradle
+      - name: Fix minSdkVersion
         run: |
-          sed -i 's/distributionUrl=.*/distributionUrl=https\\:\/\/services.gradle.org\/distributions\/gradle-8.3-all.zip/' android/gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/com.android.tools.build:gradle:.*/com.android.tools.build:gradle:8.1.0/' android/build.gradle
-          sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.0"/' android/build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 24/' android/app/build.gradle
+          sed -i 's/minSdkVersion .*/minSdkVersion 24/' android/app/build.gradle
+          sed -i 's/targetSdkVersion flutter.targetSdkVersion/targetSdkVersion 34/' android/app/build.gradle
       - run: flutter pub get
       - name: Build Release APK
         run: flutter build apk --release
